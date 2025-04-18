@@ -10,10 +10,12 @@
 		"generate:types": "openapi-typescript 'https://raw.githubusercontent.com/sonallux/spotify-web-api/refs/heads/main/fixed-spotify-open-api.yml' --output src/types/spotify_api.d.ts"
 	},
 	"dependencies": {
+		"jszip": "^3.10.1",
 		"next": "15.3.1",
 		"openapi-fetch": "^0.13.5",
 		"react": "^19.0.0",
-		"react-dom": "^19.0.0"
+		"react-dom": "^19.0.0",
+		"rsuite": "^5.79.1"
 	},
 	"devDependencies": {
 		"@eslint/eslintrc": "^3",
