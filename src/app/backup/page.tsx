@@ -2,12 +2,13 @@
 import React from "react";
 import Navbar from "@/components/Navbar";
 import { CheckTree } from "rsuite";
+import { Container, Box, Typography, Paper, Button } from "@mui/material";
 
 const BackupPage: React.FC = () => {
-	const [backupArtists, setBackupArtists] = React.useState(false);
-	const [backupLibrary, setBackupLibrary] = React.useState(false);
-	const [backupPlaylists, setBackupPlaylists] = React.useState(false);
-	const [backupFollowedPlaylists, setBackupFollowedPlaylists] = React.useState(false);
+	//const [backupArtists, setBackupArtists] = React.useState(false);
+	//const [backupLibrary, setBackupLibrary] = React.useState(false);
+	//const [backupPlaylists, setBackupPlaylists] = React.useState(false);
+	//const [backupFollowedPlaylists, setBackupFollowedPlaylists] = React.useState(false);
 
 	const handleBackup = () => {
 		// Logic to handle backup
@@ -43,21 +44,20 @@ const BackupPage: React.FC = () => {
 	];
 
 	return (
-		<div className="bg-gray-100">
+		<Box sx={{ backgroundColor: "grey.100", minHeight: "100vh" }}>
 			<Navbar />
-			<div className="flex flex-col items-center justify-center h-screen p-4 space-y-4">
-				<div className="shadow-lg p-4 rounded bg-white w-full max-w-md">
-					<p className="text-xl font-bold mb-2">Choose what to backup</p>
-					<div className="space-y-2">
-						<CheckTree data={checkTreeData} defaultExpandAll={true} defaultChecked={true} disabledItemValues={[1]} />
-					</div>
-					<div className="mt-4 hidden text-gray-600">Status: Waiting...</div>
-					<button className="w-full bg-blue-500 text-white mt-4 py-2 rounded shadow-md hover:bg-blue-600 transition" onClick={handleBackup}>
+			<Container maxWidth="sm" sx={{ display: "flex", alignItems: "center", justifyContent: "center", height: "80vh" }}>
+				<Paper elevation={3} sx={{ padding: 4, width: "100%" }}>
+					<Typography variant="h5" component="p" sx={{ marginBottom: 2, fontWeight: "bold" }}>
+						Choose what to backup
+					</Typography>
+					<CheckTree data={checkTreeData} defaultExpandAll={true} defaultChecked={true} disabledItemValues={[1]} style={{ marginBottom: 2 }} />
+					<Button variant="contained" color="primary" fullWidth sx={{ marginTop: 2 }} onClick={handleBackup}>
 						Backup
-					</button>
-				</div>
-			</div>
-		</div>
+					</Button>
+				</Paper>
+			</Container>
+		</Box>
 	);
 };
 

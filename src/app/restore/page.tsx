@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import Navbar from "@/components/Navbar";
+import { Container, Box, Paper, Typography, Button, FormControlLabel, Checkbox } from "@mui/material";
 
 const RestorePage: React.FC = () => {
 	const [fileDropped, setFileDropped] = useState(false);
@@ -10,35 +11,43 @@ const RestorePage: React.FC = () => {
 	};
 
 	return (
-		<div>
+		<Box sx={{ minHeight: "100vh", backgroundColor: "grey.100" }}>
 			<Navbar />
-			<div className="flex flex-col items-center justify-center h-screen p-4 space-y-4">
-				<div className="shadow-lg p-4 rounded bg-white w-full max-w-md">
+			<Container maxWidth="sm" sx={{ display: "flex", alignItems: "center", justifyContent: "center", height: "80vh" }}>
+				<Paper elevation={3} sx={{ padding: 4, width: "100%" }}>
 					{fileDropped ? (
-						<div className="space-y-2">
-							<label className="block">
-								<input type="checkbox" className="mr-2" />
-								Option 1
-							</label>
-							<label className="block">
-								<input type="checkbox" className="mr-2" />
-								Option 2
-							</label>
-							<label className="block">
-								<input type="checkbox" className="mr-2" />
-								Option 3
-							</label>
-						</div>
+						<Box component="form" sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+							<FormControlLabel control={<Checkbox />} label="Option 1" />
+							<FormControlLabel control={<Checkbox />} label="Option 2" />
+							<FormControlLabel control={<Checkbox />} label="Option 3" />
+						</Box>
 					) : (
-						<div className="border-3 border-dashed p-4 text-center cursor-pointer" onClick={handleFileDrop}>
+						<Box
+							sx={{
+								border: "2px dashed",
+								padding: 4,
+								textAlign: "center",
+								cursor: "pointer",
+								"&:hover": { backgroundColor: "grey.200" },
+							}}
+							onClick={handleFileDrop}
+						>
 							Drag file here or click to upload
-						</div>
+						</Box>
 					)}
-					{fileDropped && <div className="mt-4 text-gray-600">Status: Ready to Restore</div>}
-					{fileDropped && <button className="w-full bg-blue-500 text-white mt-4 py-2 rounded shadow-md hover:bg-blue-600 transition">Restore</button>}
-				</div>
-			</div>
-		</div>
+					{fileDropped && (
+						<Typography variant="body2" sx={{ color: "grey.600", marginTop: 2 }}>
+							Status: Ready to Restore
+						</Typography>
+					)}
+					{fileDropped && (
+						<Button variant="contained" color="primary" fullWidth sx={{ marginTop: 2 }}>
+							Restore
+						</Button>
+					)}
+				</Paper>
+			</Container>
+		</Box>
 	);
 };
 

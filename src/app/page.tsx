@@ -1,31 +1,50 @@
 "use client";
 import React, { useState } from "react";
 import Link from "next/link";
+import { Button, Container, Typography, Paper, Box } from "@mui/material";
 
 export default function Home() {
 	const [isLoggedIn, setIsLoggedIn] = useState(false);
 
 	return (
-		<div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-			<div className="flex flex-col items-center justify-center w-full max-w-md p-12 bg-white rounded-lg shadow-md">
-				<h1 className="text-6xl font-bold text-gray-800 mb-12">SpotVault</h1>
+		<Container
+			maxWidth="lg"
+			sx={{
+				display: "flex",
+				flexDirection: "column",
+				alignItems: "center",
+				justifyContent: "center",
+				minHeight: "100vh",
+				backgroundColor: "grey.100",
+			}}
+		>
+			<Paper
+				elevation={3}
+				sx={{
+					padding: 4,
+					display: "flex",
+					flexDirection: "column",
+					alignItems: "center",
+				}}
+			>
+				<Typography variant="h2" component="h1" sx={{ marginBottom: 4 }} gutterBottom>
+					SpotVault
+				</Typography>
 				{!isLoggedIn ? (
-					<div className="flex flex-row items-center justify-center space-x-4">
-						<div className="px-8 py-4 text-lg border-2 rounded-lg shadow-xl/30">
-							<Link href="/backup" className="text-2xl">
-								Backup
-							</Link>
-						</div>
-						<div className="px-8 py-4 text-lg border-2 rounded-lg shadow-xl/30">
-							<Link href="/restore" className="text-2xl">
-								Restore
-							</Link>
-						</div>
-					</div>
+					<Box sx={{ display: "flex", gap: 2 }}>
+						<Button variant="outlined" component={Link} href="/backup" size="large">
+							Backup
+						</Button>
+						<Button variant="outlined" component={Link} href="/restore" size="large">
+							Restore
+						</Button>
+					</Box>
 				) : (
-					<button className="bg-blue-500 text-white px-12 py-4 rounded shadow-md hover:bg-blue-600 transition text-xl">Login</button>
+					<Button variant="contained" color="primary" size="large" onClick={() => setIsLoggedIn(false)}>
+						Login
+					</Button>
 				)}
-			</div>
-		</div>
+			</Paper>
+		</Container>
 	);
 }
