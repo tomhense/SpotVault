@@ -3,6 +3,7 @@ import { setupDevPlatform } from "@cloudflare/next-on-pages/next-dev";
 
 const nextConfig: NextConfig = {
 	/* config options here */
+	output: "export",
 };
 
 if (process.env.NODE_ENV === "development") {
