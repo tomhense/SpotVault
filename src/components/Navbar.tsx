@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { AppBar, Toolbar, Typography, Button, Box } from "@mui/material";
+import { homepage } from "../../package.json";
 
 const Navbar: React.FC = () => {
 	return (
@@ -22,7 +23,7 @@ const Navbar: React.FC = () => {
 				</Box>
 				<Box sx={{ flexGrow: 1 }} /> {/* This box takes the remaining space */}
 				<Box sx={{ display: "flex", alignItems: "center" }}>
-					<a href="https://github.com" style={{ textDecoration: "none", color: "inherit" }}>
+					<a href={homepage} style={{ textDecoration: "none", color: "inherit" }}>
 						<Typography variant="body1" sx={{ marginRight: 5 }}>
 							Source Code
 						</Typography>
