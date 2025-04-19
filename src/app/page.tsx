@@ -30,7 +30,7 @@ export default function Home() {
 				<Typography variant="h2" component="h1" sx={{ marginBottom: 4 }} gutterBottom>
 					SpotVault
 				</Typography>
-				{!isLoggedIn ? (
+				{isLoggedIn ? (
 					<Box sx={{ display: "flex", gap: 2 }}>
 						<Button variant="outlined" component={Link} href="/backup" size="large">
 							Backup

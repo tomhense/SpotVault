@@ -20,6 +20,14 @@ const Navbar: React.FC = () => {
 						SpotVault
 					</Typography>
 				</Box>
+				<Box sx={{ flexGrow: 1 }} /> {/* This box takes the remaining space */}
+				<Box sx={{ display: "flex", alignItems: "center" }}>
+					<a href="https://github.com" style={{ textDecoration: "none", color: "inherit" }}>
+						<Typography variant="body1" sx={{ marginRight: 5 }}>
+							Source Code
+						</Typography>
+					</a>
+				</Box>
 				<Box>
 					<Button
 						variant="outlined"

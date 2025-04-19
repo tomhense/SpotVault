@@ -3,8 +3,8 @@
  * against Spotify Accounts. _For more information, read_ https://developer.spotify.com/documentation/web-api/tutorials/code-pkce-flow
  */
 
-const clientId: string = "yourClientIDGoesHere"; // your clientId
-const redirectUrl: string = "eg:http://localhost:8080"; // your redirect URL - must be localhost URL and/or HTTPS
+const clientId: string = "6f009299dfc74904993a1b595787371d"; // your clientId
+const redirectUrl: string = "http://127.0.0.1:3000"; // your redirect URL - must be localhost URL and/or HTTPS
 
 const authorizationEndpoint: string = "https://accounts.spotify.com/authorize";
 const tokenEndpoint: string = "https://accounts.spotify.com/api/token";
@@ -19,7 +19,7 @@ interface TokenResponse {
 }
 
 // Data structure that manages the current active token, caching it in localStorage
-const currentToken = {
+export const currentToken = {
 	get access_token(): string | null {
 		return localStorage.getItem("access_token");
 	},

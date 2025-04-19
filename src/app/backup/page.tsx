@@ -46,7 +46,7 @@ const BackupPage: React.FC = () => {
 	return (
 		<Box sx={{ backgroundColor: "grey.100", minHeight: "100vh" }}>
 			<Navbar />
-			<Container maxWidth="sm" sx={{ display: "flex", alignItems: "center", justifyContent: "center", height: "80vh" }}>
+			<Container maxWidth="sm" sx={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh" }}>
 				<Paper elevation={3} sx={{ padding: 4, width: "100%" }}>
 					<Typography variant="h5" component="p" sx={{ marginBottom: 2, fontWeight: "bold" }}>
 						Choose what to backup
