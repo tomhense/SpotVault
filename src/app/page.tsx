@@ -1,10 +1,24 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect } from "react";
 import Link from "next/link";
 import { Button, Container, Typography, Paper, Box } from "@mui/material";
+import { currentToken, tryFetchAndHandleAuthCode, redirectToSpotifyAuthorize, tryRefreshToken } from "@/utils/spotify_auth";
+import { NoSsr } from "@mui/material";
 
 export default function Home() {
-	const [isLoggedIn, setIsLoggedIn] = useState(false);
+	const [isLoggedIn, setIsLoggedIn] = React.useState(false);
+
+	useEffect(() => {
+		(async () => {
+			setIsLoggedIn(currentToken.notNull);
+
+			if (await tryFetchAndHandleAuthCode()) {
+				setIsLoggedIn(true);
+			} else {
+				await tryRefreshToken();
+			}
+		})();
+	});
 
 	return (
 		<Container
@@ -30,20 +44,22 @@ export default function Home() {
 				<Typography variant="h2" component="h1" sx={{ marginBottom: 4 }} gutterBottom>
 					SpotVault
 				</Typography>
-				{isLoggedIn ? (
-					<Box sx={{ display: "flex", gap: 2 }}>
-						<Button variant="outlined" component={Link} href="/backup" size="large">
-							Backup
+				<NoSsr>
+					{isLoggedIn ? (
+						<Box sx={{ display: "flex", gap: 2 }}>
+							<Button variant="outlined" component={Link} href="/backup" size="large">
+								Backup
+							</Button>
+							<Button variant="outlined" component={Link} href="/restore" size="large">
+								Restore
+							</Button>
+						</Box>
+					) : (
+						<Button variant="contained" color="primary" size="large" onClick={redirectToSpotifyAuthorize}>
+							Login
 						</Button>
-						<Button variant="outlined" component={Link} href="/restore" size="large">
-							Restore
-						</Button>
-					</Box>
-				) : (
-					<Button variant="contained" color="primary" size="large" onClick={() => setIsLoggedIn(false)}>
-						Login
-					</Button>
-				)}
+					)}
+				</NoSsr>
 			</Paper>
 		</Container>
 	);

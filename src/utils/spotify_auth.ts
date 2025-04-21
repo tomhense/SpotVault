@@ -1,3 +1,4 @@
+"use client";
 /**
  * _This is an example of a basic node.js script that performs_ the Authorization Code with PKCE oAuth2 flow to authenticate
  * against Spotify Accounts. _For more information, read_ https://developer.spotify.com/documentation/web-api/tutorials/code-pkce-flow
@@ -18,73 +19,77 @@ interface TokenResponse {
 	expires_in: number;
 }
 
-// Data structure that manages the current active token, caching it in localStorage
+// Data structure that manages the current active token, caching it in window.localStorage
 export const currentToken = {
 	get access_token(): string | null {
-		return localStorage.getItem("access_token");
+		if (typeof window !== "undefined") {
+			return window.localStorage.getItem("access_token");
+		}
+		return null;
 	},
 	get refresh_token(): string | null {
-		return localStorage.getItem("refresh_token");
+		if (typeof window !== "undefined") {
+			return window.localStorage.getItem("refresh_token");
+		}
+		return null;
 	},
 	get expires_in(): number | null {
-		const item = localStorage.getItem("expires_in");
-		return item ? parseInt(item, 10) : null;
+		if (typeof window !== "undefined") {
+			const item = window.localStorage.getItem("expires_in");
+			return item ? parseInt(item, 10) : null;
+		}
+		return null;
 	},
 	get expires(): Date | null {
-		const item = localStorage.getItem("expires");
-		return item ? new Date(item) : null;
+		if (typeof window !== "undefined") {
+			const item = window.localStorage.getItem("expires");
+			return item ? new Date(item) : null;
+		}
+		return null;
+	},
+	get isExpired(): boolean {
+		const now = new Date();
+		const expires = this.expires;
+		return this.access_token !== null && expires !== null && now >= expires;
+	},
+	get notNull(): boolean {
+		return this.access_token !== null && this.refresh_token !== null && this.expires_in !== null;
 	},
 	save: function (response: TokenResponse): void {
-		const { access_token, refresh_token, expires_in } = response;
-		localStorage.setItem("access_token", access_token);
-		localStorage.setItem("refresh_token", refresh_token);
-		localStorage.setItem("expires_in", expires_in.toString());
-
-		const now = new Date();
-		const expiry = new Date(now.getTime() + expires_in * 1000);
-		localStorage.setItem("expires", expiry.toISOString());
+		if (typeof window !== "undefined") {
+			const { access_token, refresh_token, expires_in } = response;
+			window.localStorage.setItem("access_token", access_token);
+			window.localStorage.setItem("refresh_token", refresh_token);
+			window.localStorage.setItem("expires_in", expires_in.toString());
+			const now = new Date();
+			const expiry = new Date(now.getTime() + expires_in * 1000);
+			window.localStorage.setItem("expires", expiry.toISOString());
+		}
 	},
 };
 
-async function login(): Promise<void> {
+export async function tryFetchAndHandleAuthCode(): Promise<boolean> {
 	// On page load, try to fetch auth code from current browser search URL
 	const args = new URLSearchParams(window.location.search);
 	const code = args.get("code");
 
 	// If we find a code, we're in a callback, do a token exchange
 	if (code) {
-		(async () => {
-			const token = await getToken(code);
-			currentToken.save(token);
+		const token = await getToken(code);
+		currentToken.save(token);
 
-			// Remove code from URL so we can refresh correctly.
-			const url = new URL(window.location.href);
-			url.searchParams.delete("code");
-			const updatedUrl = url.search ? url.href : url.href.replace("?", "");
-			window.history.replaceState({}, document.title, updatedUrl);
-		})();
+		// Remove code from URL so we can refresh correctly.
+		const url = new URL(window.location.href);
+		url.searchParams.delete("code");
+		const updatedUrl = url.search ? url.href : url.href.replace("?", "");
+		window.history.replaceState({}, document.title, updatedUrl);
+		return true;
 	}
 
-	// If we have a token, we're logged in, so fetch user data and render logged in template
-	if (currentToken.access_token) {
-		(async () => {
-			//const userData = await getUserData();
-			//renderTemplate("main", "logged-in-template", userData);
-			//renderTemplate("oauth", "oauth-template", currentToken);
-		})();
-	}
-
-	// Otherwise we're not logged in, so render the login template
-	if (!currentToken.access_token) {
-		//renderTemplate("main", "login");
-	}
+	return false;
 }
 
-/* --------------- Change this following section ------------------- */
-
-/* ------------------------ section end ---------------------------- */
-
-async function redirectToSpotifyAuthorize(): Promise<void> {
+export async function redirectToSpotifyAuthorize(): Promise<void> {
 	const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 	const randomValues = crypto.getRandomValues(new Uint8Array(64));
 
@@ -117,7 +122,7 @@ async function redirectToSpotifyAuthorize(): Promise<void> {
 
 // Spotify API Calls
 async function getToken(code: string): Promise<TokenResponse> {
-	const code_verifier = localStorage.getItem("code_verifier") ?? "";
+	const code_verifier = window.localStorage.getItem("code_verifier") ?? "";
 	const response = await fetch(tokenEndpoint, {
 		method: "POST",
 		headers: {
@@ -135,33 +140,46 @@ async function getToken(code: string): Promise<TokenResponse> {
 	return await response.json();
 }
 
-async function refreshToken(): Promise<TokenResponse> {
+async function refreshTokenInternal(): Promise<TokenResponse | null> {
 	const refresh_token = currentToken.refresh_token ?? "";
-	const response = await fetch(tokenEndpoint, {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/x-www-form-urlencoded",
-		},
-		body: new URLSearchParams({
-			client_id: clientId,
-			grant_type: "refresh_token",
-			refresh_token: refresh_token,
-		}),
-	});
-
-	return await response.json();
+	try {
+		const response = await fetch(tokenEndpoint, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/x-www-form-urlencoded",
+			},
+			body: new URLSearchParams({
+				client_id: clientId,
+				grant_type: "refresh_token",
+				refresh_token: refresh_token,
+			}),
+		});
+		return await response.json();
+	} catch (error) {
+		console.error("Error refreshing token:", error);
+		logout();
+		return null;
+	}
 }
 
-function logout(): void {
+export async function tryRefreshToken() {
+	if (currentToken.isExpired) {
+		// If the token is expired, try to refresh it
+		(async () => {
+			const token = await refreshTokenInternal();
+			if (token) {
+				currentToken.save(token);
+			}
+		})();
+	}
+}
+
+export function logout(): void {
 	// Clear local storage
-	localStorage.removeItem("access_token");
-	localStorage.removeItem("refresh_token");
-	localStorage.removeItem("expires_in");
-	localStorage.removeItem("expires");
-	localStorage.removeItem("code_verifier");
-}
-
-function getAccessToken(): string {
-	// We'll only check for missing token and token expiration on app load
-	return localStorage.getItem("access_token") ?? "";
+	window.localStorage.removeItem("access_token");
+	window.localStorage.removeItem("refresh_token");
+	window.localStorage.removeItem("expires_in");
+	window.localStorage.removeItem("expires");
+	window.localStorage.removeItem("code_verifier");
+	window.location.href = "/"; // Redirect to the home page
 }

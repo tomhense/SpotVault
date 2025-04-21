@@ -1,9 +1,21 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import { Container, Box, Paper, Typography, Button, FormControlLabel, Checkbox } from "@mui/material";
+import { currentToken, tryRefreshToken } from "@/utils/spotify_auth";
 
 const RestorePage: React.FC = () => {
+	useEffect(() => {
+		(async () => {
+			await tryRefreshToken();
+
+			// Check if the user is logged in
+			if (currentToken.isExpired) {
+				window.location.href = "/";
+			}
+		})();
+	});
+
 	const [fileDropped, setFileDropped] = useState(false);
 
 	const handleFileDrop = () => {

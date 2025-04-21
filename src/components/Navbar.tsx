@@ -2,6 +2,7 @@ import React from "react";
 import Link from "next/link";
 import { AppBar, Toolbar, Typography, Button, Box } from "@mui/material";
 import { homepage } from "../../package.json";
+import { logout } from "@/utils/spotify_auth";
 
 const Navbar: React.FC = () => {
 	return (
@@ -40,6 +41,7 @@ const Navbar: React.FC = () => {
 								borderWidth: "2px",
 							},
 						}}
+						onClick={logout}
 					>
 						Logout
 					</Button>

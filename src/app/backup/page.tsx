@@ -1,14 +1,21 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import { CheckTree } from "rsuite";
 import { Container, Box, Typography, Paper, Button } from "@mui/material";
+import { currentToken, tryRefreshToken } from "@/utils/spotify_auth";
 
 const BackupPage: React.FC = () => {
-	//const [backupArtists, setBackupArtists] = React.useState(false);
-	//const [backupLibrary, setBackupLibrary] = React.useState(false);
-	//const [backupPlaylists, setBackupPlaylists] = React.useState(false);
-	//const [backupFollowedPlaylists, setBackupFollowedPlaylists] = React.useState(false);
+	useEffect(() => {
+		(async () => {
+			await tryRefreshToken();
+
+			// Check if the user is logged in
+			if (currentToken.isExpired) {
+				window.location.href = "/";
+			}
+		})();
+	});
 
 	const handleBackup = () => {
 		// Logic to handle backup
