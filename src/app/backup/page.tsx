@@ -1,11 +1,16 @@
 "use client";
 import React, { useEffect } from "react";
 import Navbar from "@/components/Navbar";
-import { CheckTree } from "rsuite";
 import { Container, Box, Typography, Paper, Button } from "@mui/material";
 import { currentToken, tryRefreshToken } from "@/utils/spotify_auth";
+import backup from "@/utils/backup";
+import { TreeNode } from "rsuite/esm/internals/Tree/types";
+import EnhancedCheckTree from "@/components/EnhancedCheckTree";
 
 const BackupPage: React.FC = () => {
+	const [checkTreeData, setCheckTreeData] = React.useState<TreeNode[]>([]);
+	const [disableCheckTree, setDisableCheckTree] = React.useState(false);
+
 	useEffect(() => {
 		(async () => {
 			await tryRefreshToken();
@@ -14,41 +19,71 @@ const BackupPage: React.FC = () => {
 			if (currentToken.isExpired) {
 				window.location.href = "/";
 			}
+
+			await backup.shallowFetch();
+
+			const generateRandomId = () => {
+				return Math.floor(Math.random() * 1e18);
+			};
+
+			// Populate the check tree with the data from the backup (the backups shallow fetch)
+			setCheckTreeData([
+				{ label: "Followed Artists", check: false, value: generateRandomId() },
+				{
+					label: "Saved Library",
+					value: Math.random() * 1e18,
+					check: false,
+					children: [
+						{ label: "Saved Albums", value: generateRandomId() },
+						{ label: "Saved Tracks", value: generateRandomId() },
+					],
+				},
+				{
+					label: "Playlists",
+					value: generateRandomId(),
+					check: false,
+					children: backup.playlists.map((playlist) => ({
+						label: playlist.name,
+						value: playlist.id,
+					})),
+				},
+				{
+					label: "Followed Playlists",
+					value: generateRandomId(),
+					check: false,
+					children: backup.followed_playlists.map((playlist) => ({
+						label: playlist.name,
+						value: playlist.id,
+					})),
+				},
+			]);
 		})();
-	});
+	}, []);
 
-	const handleBackup = () => {
-		// Logic to handle backup
-	};
+	async function createBackup() {
+		setDisableCheckTree(true);
+		const backupSavedTracks = checkTreeData.find((node) => node.label === "Saved Library")?.check || false;
+		const backupSavedAlbums = checkTreeData.find((node) => node.label === "Saved Albums")?.check || false;
+		const backupFollowedArtists = checkTreeData.find((node) => node.label === "Followed Artists")?.check || false;
+		const checkedPlaylistsIds =
+			checkTreeData
+				.find((node) => node.label === "Playlists")
+				?.children?.filter((node) => node.check)
+				.map((node) => node.value as string) || [];
 
-	const checkTreeData = [
-		{ label: "Followed Artists", value: 1 },
-		{
-			label: "Saved Library",
-			value: Math.random() * 1e18,
-			children: [
-				{ label: "Saved Albums", value: Math.random() * 1e18 },
-				{ label: "Saved Tracks", value: Math.random() * 1e18 },
-				{ label: "Saved Podcasts", value: Math.random() * 1e18 },
-			],
-		},
-		{
-			label: "Playlists",
-			value: Math.random() * 1e18,
-			children: [
-				{ label: "Playlist 1", value: Math.random() * 1e18 },
-				{ label: "Playlist 2", value: Math.random() * 1e18 },
-			],
-		},
-		{
-			label: "Followed Playlists",
-			value: Math.random() * 1e18,
-			children: [
-				{ label: "Playlist 1", value: Math.random() * 1e18 },
-				{ label: "Playlist 2", value: Math.random() * 1e18 },
-			],
-		},
-	];
+		const checkedFollowedPlaylistsIds =
+			checkTreeData
+				.find((node) => node.label === "Followed Playlists")
+				?.children?.filter((node) => node.check)
+				.map((node) => node.value as string) || [];
+
+		console.log("backup saved tracks", backupSavedTracks);
+		console.log("backup saved albums", backupSavedAlbums);
+
+		await backup.createBackup(checkedPlaylistsIds, checkedFollowedPlaylistsIds, backupSavedTracks, backupSavedAlbums, backupFollowedArtists);
+		await backup.downloadZip();
+		setDisableCheckTree(false);
+	}
 
 	return (
 		<Box sx={{ backgroundColor: "grey.100", minHeight: "100vh" }}>
@@ -58,8 +93,8 @@ const BackupPage: React.FC = () => {
 					<Typography variant="h5" component="p" sx={{ marginBottom: 2, fontWeight: "bold" }}>
 						Choose what to backup
 					</Typography>
-					<CheckTree data={checkTreeData} defaultExpandAll={true} defaultChecked={true} disabledItemValues={[1]} style={{ marginBottom: 2 }} />
-					<Button variant="contained" color="primary" fullWidth sx={{ marginTop: 2 }} onClick={handleBackup}>
+					<EnhancedCheckTree data={checkTreeData} defaultExpandAll={true} style={{ marginBottom: 2 }} disabled={disableCheckTree} set_data={setCheckTreeData} />
+					<Button variant="contained" color="primary" fullWidth sx={{ marginTop: 2 }} onClick={createBackup}>
 						Backup
 					</Button>
 				</Paper>

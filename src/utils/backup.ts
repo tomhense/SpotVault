@@ -3,7 +3,7 @@ import { components } from "../types/spotify_api.d";
 import { getFollowedArtists, getPlaylists, getSavedAlbums, getSavedTracks, getCurrentUser, getPlaylist } from "./spotify_api";
 import { version } from "../../package.json";
 
-export class Backup {
+class Backup {
 	metadata: {
 		timestamp: number; // Timestamp of the backup creation in milliseconds
 		version: string; // Version of the backup
@@ -66,7 +66,7 @@ export class Backup {
 		this.mutex_lock = false;
 	}
 
-	async createBackup() {
+	async createBackup(playlistIdsToBackup: string[], followedPlaylistIdsToBackup: string[], backupSavedTracks: boolean, backupSavedAlbums: boolean, backupFollowedArtists: boolean) {
 		if (this.mutex_lock) throw new Error("Backup is locked");
 		if (this.status === "full") {
 			console.warn("Backup is already full. Replacing existing data.");
@@ -78,42 +78,53 @@ export class Backup {
 		this.metadata.timestamp = Date.now();
 		this.metadata.version = version;
 
-		this.saved_tracks = await getSavedTracks();
-		this.saved_albums = await getSavedAlbums();
-		this.followed_artists = await getFollowedArtists();
+		if (backupSavedTracks) this.saved_tracks = await getSavedTracks();
+		if (backupSavedAlbums) this.saved_albums = await getSavedAlbums();
+		if (backupFollowedArtists) this.followed_artists = await getFollowedArtists();
 
 		// Deep fetch playlists
 		for (const playlist of this.playlists) {
-			playlist.tracks = (await getPlaylist(playlist.id!)).tracks;
+			if (playlistIdsToBackup.includes(playlist.id!)) {
+				playlist.tracks = (await getPlaylist(playlist.id!)).tracks;
+			}
 		}
 		for (const playlist of this.followed_playlists) {
-			playlist.tracks = (await getPlaylist(playlist.id!)).tracks;
+			if (followedPlaylistIdsToBackup.includes(playlist.id!)) {
+				playlist.tracks = (await getPlaylist(playlist.id!)).tracks;
+			}
 		}
+
+		const fetchPlaylistImages = async (playlist: components["schemas"]["SimplifiedPlaylistObject"]) => {
+			if (playlist.images && playlist.images.length > 0) {
+				// The first image is always the widest one
+				// Url should be in the format "https://i.scdn.co/image/ab67616d00001e02ff9ca10b55ce82ae553c8228"
+				const url = playlist.images[0]!.url;
+				const slug = this.getLastPathSegment(url);
+				if (slug) {
+					const filename = slug + ".jpg";
+					try {
+						const response = await fetch(url);
+						this.images.push(new File([await response.blob()], filename));
+					} catch (error) {
+						console.error(`Error downloading image: ${error}`);
+					}
+				} else {
+					console.error(`Error parsing image slug from URL: ${url}`);
+				}
+			}
+		};
 
 		// Download images
 		await Promise.allSettled(
 			this.playlists.map(async (playlist) => {
-				if (playlist.images && playlist.images.length > 0) {
-					// The first image is always the widest one
-					// Url should be in the format "https://i.scdn.co/image/ab67616d00001e02ff9ca10b55ce82ae553c8228"
-					const url = playlist.images[0]!.url;
-
-					const slug = /https:\/\/i\.scdn\.co\/image\/(.+)\/?/.exec(url)?.[1];
-					if (slug) {
-						const filename = slug + ".jpg";
-						try {
-							const response = await fetch(url);
-							this.images.push(new File([await response.blob()], filename));
-						} catch (error) {
-							console.error(`Error downloading image: ${error}`);
-						}
-					} else {
-						console.error(`Error parsing image slug from URL: ${url}`);
-					}
-				}
+				await fetchPlaylistImages.call(this, playlist);
 			})
 		);
-
+		await Promise.allSettled(
+			this.followed_playlists.map(async (playlist) => {
+				await fetchPlaylistImages.call(this, playlist);
+			})
+		);
 		this.status = "full";
 		this.mutex_lock = false;
 	}
@@ -131,6 +142,17 @@ export class Backup {
 
 	localIsoDateString(date: Date) {
 		return date.toLocaleString("sv").replace(" ", "T").replace(":", "-");
+	}
+
+	getLastPathSegment(url: string | URL): string {
+		try {
+			const urlObj = new URL(url);
+			const pathSegments = urlObj.pathname.split("/").filter((segment) => segment.length > 0);
+			return pathSegments[pathSegments.length - 1] || "";
+		} catch (error) {
+			console.error("Invalid URL:", error);
+			return "";
+		}
 	}
 
 	async downloadZip() {
@@ -193,3 +215,6 @@ export class Backup {
 		return backup;
 	}
 }
+
+const backup = new Backup();
+export default backup;

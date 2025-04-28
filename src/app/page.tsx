@@ -19,7 +19,7 @@ export default function Home() {
 				await tryRefreshToken();
 			}
 		})();
-	});
+	}, []);
 
 	return (
 		<Box sx={{ backgroundColor: "grey.100", minHeight: "100vh" }}>

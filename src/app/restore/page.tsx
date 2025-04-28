@@ -14,7 +14,7 @@ const RestorePage: React.FC = () => {
 				window.location.href = "/";
 			}
 		})();
-	});
+	}, []);
 
 	const [fileDropped, setFileDropped] = useState(false);
 
