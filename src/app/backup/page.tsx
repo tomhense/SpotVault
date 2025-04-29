@@ -1,15 +1,15 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import Navbar from "@/components/Navbar";
 import { Container, Box, Typography, Paper, Button } from "@mui/material";
 import { currentToken, tryRefreshToken } from "@/utils/spotify_auth";
-import backup from "@/utils/backup";
-import { TreeNode } from "rsuite/esm/internals/Tree/types";
-import EnhancedCheckTree from "@/components/EnhancedCheckTree";
+import Backup, { BackupOptions } from "@/utils/backup";
+import BackupCheckTree from "@/utils/BackupCheckTree";
 
 const BackupPage: React.FC = () => {
-	const [checkTreeData, setCheckTreeData] = React.useState<TreeNode[]>([]);
-	const [disableCheckTree, setDisableCheckTree] = React.useState(false);
+	const [checkTreeDisabled, setCheckTreeDisabled] = React.useState(false);
+	const [backupOptions, setBackupOptions] = React.useState<BackupOptions | null>(null);
+	const backup = useRef(new Backup());
 
 	useEffect(() => {
 		(async () => {
@@ -20,68 +20,16 @@ const BackupPage: React.FC = () => {
 				window.location.href = "/";
 			}
 
-			await backup.shallowFetch();
-
-			const generateRandomId = () => {
-				return Math.floor(Math.random() * 1e18);
-			};
-
-			// Populate the check tree with the data from the backup (the backups shallow fetch)
-			setCheckTreeData([
-				{ label: "Followed Artists", check: false, value: generateRandomId() },
-				{
-					label: "Saved Library",
-					value: Math.random() * 1e18,
-					check: false,
-					children: [
-						{ label: "Saved Albums", value: generateRandomId() },
-						{ label: "Saved Tracks", value: generateRandomId() },
-					],
-				},
-				{
-					label: "Playlists",
-					value: generateRandomId(),
-					check: false,
-					children: backup.playlists.map((playlist) => ({
-						label: playlist.name,
-						value: playlist.id,
-					})),
-				},
-				{
-					label: "Followed Playlists",
-					value: generateRandomId(),
-					check: false,
-					children: backup.followed_playlists.map((playlist) => ({
-						label: playlist.name,
-						value: playlist.id,
-					})),
-				},
-			]);
+			await backup.current.shallowFetch();
 		})();
-	}, []);
+	}, [backup]);
 
 	async function createBackup() {
-		setDisableCheckTree(true);
-
-		const savedLibraryNodeChildren = checkTreeData.find((node) => node.label === "Saved Library")!.children as TreeNode[];
-		const backupSavedTracks = savedLibraryNodeChildren.find((node: TreeNode) => node.label === "Saved Tracks")?.check || false;
-		const backupSavedAlbums = savedLibraryNodeChildren.find((node: TreeNode) => node.label === "Saved Albums")?.check || false;
-		const backupFollowedArtists = checkTreeData.find((node: TreeNode) => node.label === "Followed Artists")?.check || false;
-		const checkedPlaylistsIds =
-			checkTreeData
-				.find((node) => node.label === "Playlists")
-				?.children?.filter((node) => node.check)
-				.map((node) => node.value as string) || [];
-
-		const checkedFollowedPlaylistsIds =
-			checkTreeData
-				.find((node) => node.label === "Followed Playlists")
-				?.children?.filter((node) => node.check)
-				.map((node) => node.value as string) || [];
-
-		await backup.createBackup(checkedPlaylistsIds, checkedFollowedPlaylistsIds, backupSavedTracks, backupSavedAlbums, backupFollowedArtists);
-		await backup.downloadZip();
-		setDisableCheckTree(false);
+		if (!backupOptions) return;
+		setCheckTreeDisabled(true);
+		await backup.current.createBackup(backupOptions);
+		await backup.current.downloadZip();
+		setCheckTreeDisabled(false);
 	}
 
 	return (
@@ -92,7 +40,7 @@ const BackupPage: React.FC = () => {
 					<Typography variant="h5" component="p" sx={{ marginBottom: 2, fontWeight: "bold" }}>
 						Choose what to backup
 					</Typography>
-					<EnhancedCheckTree data={checkTreeData} defaultExpandAll={true} style={{ marginBottom: 2 }} disabled={disableCheckTree} set_data={setCheckTreeData} />
+					<BackupCheckTree disabled={checkTreeDisabled} backup={backup.current} onChangeBackupOptions={setBackupOptions} />
 					<Button variant="contained" color="primary" fullWidth sx={{ marginTop: 2 }} onClick={createBackup}>
 						Backup
 					</Button>
