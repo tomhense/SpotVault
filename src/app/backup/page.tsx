@@ -62,9 +62,11 @@ const BackupPage: React.FC = () => {
 
 	async function createBackup() {
 		setDisableCheckTree(true);
-		const backupSavedTracks = checkTreeData.find((node) => node.label === "Saved Library")?.check || false;
-		const backupSavedAlbums = checkTreeData.find((node) => node.label === "Saved Albums")?.check || false;
-		const backupFollowedArtists = checkTreeData.find((node) => node.label === "Followed Artists")?.check || false;
+
+		const savedLibraryNodeChildren = checkTreeData.find((node) => node.label === "Saved Library")!.children as TreeNode[];
+		const backupSavedTracks = savedLibraryNodeChildren.find((node: TreeNode) => node.label === "Saved Tracks")?.check || false;
+		const backupSavedAlbums = savedLibraryNodeChildren.find((node: TreeNode) => node.label === "Saved Albums")?.check || false;
+		const backupFollowedArtists = checkTreeData.find((node: TreeNode) => node.label === "Followed Artists")?.check || false;
 		const checkedPlaylistsIds =
 			checkTreeData
 				.find((node) => node.label === "Playlists")
@@ -76,9 +78,6 @@ const BackupPage: React.FC = () => {
 				.find((node) => node.label === "Followed Playlists")
 				?.children?.filter((node) => node.check)
 				.map((node) => node.value as string) || [];
-
-		console.log("backup saved tracks", backupSavedTracks);
-		console.log("backup saved albums", backupSavedAlbums);
 
 		await backup.createBackup(checkedPlaylistsIds, checkedFollowedPlaylistsIds, backupSavedTracks, backupSavedAlbums, backupFollowedArtists);
 		await backup.downloadZip();

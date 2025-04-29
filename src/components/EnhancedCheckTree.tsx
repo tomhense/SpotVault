@@ -10,25 +10,34 @@ interface EnhancedCheckTreeProps extends CheckTreeProps {
 	disabled: boolean;
 }
 
+// Do a a shallow search for the item with the given value in the tree
+const _recursiveFindValue = (node: TreeNode, value: ValueType): TreeNode | null => {
+	if (node.value === value) {
+		return node;
+	}
+	if (node.children) {
+		for (const child of node.children) {
+			const foundNode = _recursiveFindValue(child, value);
+			if (foundNode) {
+				return foundNode;
+			}
+		}
+	}
+	return null;
+};
+
+// Wrapper function to call the recursive function, passing the tree as a prop
+export const recursiveFindValue = (tree: TreeNode[], value: ValueType): TreeNode | null => {
+	return _recursiveFindValue({ children: tree }, value);
+};
+
 const EnhancedCheckTree: React.FC<EnhancedCheckTreeProps> = (props) => {
 	const [checkTreeData, setCheckTreeData] = React.useState<TreeNode[]>([]);
 	const [disabledItemValues, setDisabledItemValues] = React.useState<ValueType[]>([]);
 
-	// Do a a shallow search for the item with the given value in the tree
-	const recursiveFind = (node: TreeNode, value: ValueType): TreeNode | null => {
-		if (node.value === value) {
-			return node;
-		}
-		if (node.children) {
-			for (const child of node.children) {
-				const foundNode = recursiveFind(child, value);
-				if (foundNode) {
-					return foundNode;
-				}
-			}
-		}
-		return null;
-	};
+	// Destructure props to get remaining props for CheckTree, sadly this leaves us with vars that are unused (there is no better way)
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	const { set_data: _set_data, disabled: _disabled, ...checkTreeProps } = props;
 
 	// Recursively check all children of the given node
 	const recursiveChecking = (node: TreeNode, activeNode: TreeNode) => {
@@ -72,14 +81,14 @@ const EnhancedCheckTree: React.FC<EnhancedCheckTreeProps> = (props) => {
 		<CheckTree
 			disabledItemValues={disabledItemValues}
 			onSelect={(activeNode) => {
-				const checkTreeNode = recursiveFind({ children: checkTreeData }, activeNode.value as ValueType);
+				const checkTreeNode = recursiveFindValue(checkTreeData, activeNode.value as ValueType);
 				if (checkTreeNode) {
 					checkTreeNode.check = activeNode.check;
 					recursiveChecking(checkTreeNode, activeNode);
 				}
 				props.set_data(checkTreeData);
 			}}
-			{...(props as CheckTreeProps)}
+			{...checkTreeProps}
 		/>
 	);
 };

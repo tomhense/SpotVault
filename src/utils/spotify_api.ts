@@ -75,7 +75,6 @@ export async function getSavedTracks() {
 		console.error(error);
 		throw new Error(`Error fetching saved tracks: ${error}`);
 	}
-	console.log(data);
 	return data.items;
 }
 
@@ -84,7 +83,6 @@ export async function getSavedAlbums() {
 	if (error) {
 		throw new Error(`Error fetching saved albums: ${error}`);
 	}
-	console.log(data);
 	return data.items;
 }
 

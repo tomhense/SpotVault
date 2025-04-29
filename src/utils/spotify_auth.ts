@@ -33,13 +33,6 @@ export const currentToken = {
 		}
 		return null;
 	},
-	get expires_in(): number | null {
-		if (typeof window !== "undefined") {
-			const item = window.localStorage.getItem("expires_in");
-			return item ? parseInt(item, 10) : null;
-		}
-		return null;
-	},
 	get expires(): Date | null {
 		if (typeof window !== "undefined") {
 			const item = window.localStorage.getItem("expires");
@@ -53,16 +46,16 @@ export const currentToken = {
 		return this.access_token !== null && expires !== null && now >= expires;
 	},
 	get notNull(): boolean {
-		return this.access_token !== null && this.refresh_token !== null && this.expires_in !== null;
+		return this.access_token !== null && this.refresh_token !== null && this.expires !== null;
 	},
 	save: function (response: TokenResponse): void {
 		if (typeof window !== "undefined") {
+			console.log(response);
 			const { access_token, refresh_token, expires_in } = response;
 			window.localStorage.setItem("access_token", access_token);
 			window.localStorage.setItem("refresh_token", refresh_token);
 			window.localStorage.setItem("expires_in", expires_in.toString());
-			const now = new Date();
-			const expiry = new Date(now.getTime() + expires_in * 1000);
+			const expiry = new Date(new Date().getTime() + expires_in * 1000);
 			window.localStorage.setItem("expires", expiry.toISOString());
 		}
 	},
@@ -82,6 +75,10 @@ export async function tryFetchAndHandleAuthCode(): Promise<boolean> {
 		const url = new URL(window.location.href);
 		url.searchParams.delete("code");
 		const updatedUrl = url.search ? url.href : url.href.replace("?", "");
+
+		// Remove code_verifier from local storage
+		window.localStorage.removeItem("code_verifier");
+
 		window.history.replaceState({}, document.title, updatedUrl);
 		return true;
 	}
@@ -164,10 +161,12 @@ async function refreshTokenInternal(): Promise<TokenResponse | null> {
 
 export async function tryRefreshToken() {
 	if (currentToken.isExpired) {
+		console.log("Token is expired, refreshing...");
 		// If the token is expired, try to refresh it
 		(async () => {
 			const token = await refreshTokenInternal();
 			if (token) {
+				console.log("Token refreshed successfully :", token);
 				currentToken.save(token);
 			}
 		})();
@@ -178,7 +177,6 @@ export function logout(): void {
 	// Clear local storage
 	window.localStorage.removeItem("access_token");
 	window.localStorage.removeItem("refresh_token");
-	window.localStorage.removeItem("expires_in");
 	window.localStorage.removeItem("expires");
 	window.localStorage.removeItem("code_verifier");
 	window.location.href = "/"; // Redirect to the home page
