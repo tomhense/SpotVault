@@ -173,7 +173,7 @@ class Backup {
 			zip.file(`images/${image.name}`, image);
 		});
 
-		const blob = await zip.generateAsync({ type: "blob" });
+		const blob = await zip.generateAsync({ type: "blob", compression: "DEFLATE", compressionOptions: { level: 9 } });
 		const filename = `SpotVault_backup_${this.localIsoDateString(new Date(this.metadata.timestamp))}.zip`;
 		this.downloadBlob(blob, filename);
 	}
