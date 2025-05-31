@@ -110,7 +110,7 @@ export async function redirectToSpotifyAuthorize(): Promise<void> {
 		scope: scope,
 		code_challenge_method: "S256",
 		code_challenge: code_challenge_base64,
-		redirect_uri: process.env.NEXT_PUBLIC_SERVER_URL || "http://127.0.0.1:3000",
+		redirect_uri: redirectUrl,
 	};
 	authUrl.search = new URLSearchParams(params).toString();
 
