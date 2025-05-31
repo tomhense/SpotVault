@@ -8,16 +8,12 @@
 		"build": "next build",
 		"start": "next start",
 		"lint": "next lint",
-		"generate:types": "openapi-typescript 'https://raw.githubusercontent.com/sonallux/spotify-web-api/refs/heads/main/fixed-spotify-open-api.yml' --output src/types/spotify_api.d.ts",
-		"preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-		"deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
-		"cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
+		"generate:types": "openapi-typescript 'https://raw.githubusercontent.com/sonallux/spotify-web-api/refs/heads/main/fixed-spotify-open-api.yml' --output src/types/spotify_api.d.ts"
 	},
 	"dependencies": {
 		"@emotion/react": "^11.14.0",
 		"@emotion/styled": "^11.14.0",
 		"@mui/material": "^7.0.2",
-		"@opennextjs/cloudflare": "^1.0.0-beta.3",
 		"jszip": "^3.10.1",
 		"next": "15.3.1",
 		"openapi-fetch": "^0.13.5",
@@ -26,7 +22,6 @@
 		"rsuite": "^5.79.1"
 	},
 	"devDependencies": {
-		"@cloudflare/next-on-pages": "^1.13.12",
 		"@eslint/eslintrc": "^3",
 		"@types/node": "^20",
 		"@types/react": "^19",

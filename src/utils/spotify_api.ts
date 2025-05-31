@@ -6,7 +6,7 @@ const client = createPathBasedClient<paths>({ baseUrl: "https://api.spotify.com/
 
 async function paginate(path: string, query: object = {}, limit: number = 50) {
 	// @ts-expect-error type hint is too strict
-	const { data, error } = await client[path].GET(params, {
+	const { data, error } = await client[path].GET({
 		headers: {
 			Authorization: "Bearer " + currentToken.access_token,
 		},
@@ -20,12 +20,12 @@ async function paginate(path: string, query: object = {}, limit: number = 50) {
 	});
 
 	if (error || data == undefined) {
-		throw new Error(`Error fetching data: ${error}`);
+		return { error: error, data: null };
 	}
 
 	while (data.next) {
 		// @ts-expect-error type hint is too strict
-		const nextPage = await client[path].GET(data.next, {
+		const nextPage = await client[path].GET({
 			headers: {
 				Authorization: "Bearer " + currentToken.access_token,
 			},
@@ -37,13 +37,13 @@ async function paginate(path: string, query: object = {}, limit: number = 50) {
 			},
 		});
 		if (nextPage.error) {
-			throw new Error(`Error fetching data: ${nextPage.error}`);
+			return { error: nextPage.error, data: null };
 		}
 		data.items = [...data.items, ...nextPage.data.items];
 		data.next = nextPage.data.next;
 	}
 
-	return data;
+	return { data: data, error: null };
 }
 
 export async function getPlaylist(playlist_id: string) {
@@ -72,6 +72,7 @@ export async function getPlaylists() {
 export async function getSavedTracks() {
 	const { data, error } = await paginate("/me/tracks");
 	if (error) {
+		console.error(error);
 		throw new Error(`Error fetching saved tracks: ${error}`);
 	}
 	return data.items;
@@ -90,7 +91,7 @@ export async function getFollowedArtists() {
 	if (error) {
 		throw new Error(`Error fetching followed artists: ${error}`);
 	}
-	return data.items;
+	return data.artists.items;
 }
 
 export async function getCurrentUser() {
