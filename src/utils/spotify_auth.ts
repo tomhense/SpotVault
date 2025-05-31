@@ -5,7 +5,7 @@
  */
 
 const clientId: string = "6f009299dfc74904993a1b595787371d"; // your clientId
-const redirectUrl: string = "http://127.0.0.1:3000"; // your redirect URL - must be localhost URL and/or HTTPS
+const redirectUrl: string = process.env.NEXT_PUBLIC_SERVER_URL || "http://127.0.1:3000"; // your redirect URL - must be localhost URL and/or HTTPS
 
 const authorizationEndpoint: string = "https://accounts.spotify.com/authorize";
 const tokenEndpoint: string = "https://accounts.spotify.com/api/token";

@@ -3,7 +3,14 @@ import { components } from "../types/spotify_api.d";
 import { getFollowedArtists, getPlaylists, getSavedAlbums, getSavedTracks, getCurrentUser, getPlaylist } from "./spotify_api";
 import { version } from "../../package.json";
 
-class Backup {
+export interface BackupOptions {
+	backupSavedTracks: boolean;
+	backupSavedAlbums: boolean;
+	backupFollowedArtists: boolean;
+	checkedPlaylistsIds: string[];
+	checkedFollowedPlaylistsIds: string[];
+}
+export default class Backup {
 	metadata: {
 		timestamp: number; // Timestamp of the backup creation in milliseconds
 		version: string; // Version of the backup
@@ -66,7 +73,7 @@ class Backup {
 		this.mutex_lock = false;
 	}
 
-	async createBackup(playlistIdsToBackup: string[], followedPlaylistIdsToBackup: string[], backupSavedTracks: boolean, backupSavedAlbums: boolean, backupFollowedArtists: boolean) {
+	async createBackup(backupOptions: BackupOptions) {
 		if (this.mutex_lock) throw new Error("Backup is locked");
 		if (this.status === "full") {
 			console.warn("Backup is already full. Replacing existing data.");
@@ -78,18 +85,18 @@ class Backup {
 		this.metadata.timestamp = Date.now();
 		this.metadata.version = version;
 
-		if (backupSavedTracks) this.saved_tracks = await getSavedTracks();
-		if (backupSavedAlbums) this.saved_albums = await getSavedAlbums();
-		if (backupFollowedArtists) this.followed_artists = await getFollowedArtists();
+		if (backupOptions.backupSavedTracks) this.saved_tracks = await getSavedTracks();
+		if (backupOptions.backupSavedAlbums) this.saved_albums = await getSavedAlbums();
+		if (backupOptions.backupFollowedArtists) this.followed_artists = await getFollowedArtists();
 
 		// Deep fetch playlists
 		for (const playlist of this.playlists) {
-			if (playlistIdsToBackup.includes(playlist.id!)) {
+			if (backupOptions.checkedPlaylistsIds.includes(playlist.id!)) {
 				playlist.tracks = (await getPlaylist(playlist.id!)).tracks;
 			}
 		}
 		for (const playlist of this.followed_playlists) {
-			if (followedPlaylistIdsToBackup.includes(playlist.id!)) {
+			if (backupOptions.checkedFollowedPlaylistsIds.includes(playlist.id!)) {
 				playlist.tracks = (await getPlaylist(playlist.id!)).tracks;
 			}
 		}
@@ -214,7 +221,9 @@ class Backup {
 
 		return backup;
 	}
-}
 
-const backup = new Backup();
-export default backup;
+	async restoreBackup(backupOptions: BackupOptions) {
+		// TODO: Implement restore backup
+		// This function should restore the backup using the provided options
+	}
+}
