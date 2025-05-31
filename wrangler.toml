@@ -5,3 +5,4 @@ pages_build_output_dir = "out"
 
 [vars]
 NODE_VERSION = "v22.14.0"
+NEXT_PUBLIC_SERVER_URL = "https://spotvault.pages.dev"
