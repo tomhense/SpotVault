@@ -32,12 +32,10 @@ export const recursiveFindValue = (tree: TreeNode[], value: ValueType): TreeNode
 };
 
 const EnhancedCheckTree: React.FC<EnhancedCheckTreeProps> = (props) => {
-	const [checkTreeData, setCheckTreeData] = React.useState<TreeNode[]>([]);
 	const [disabledItemValues, setDisabledItemValues] = React.useState<ValueType[]>([]);
-
-	// Destructure props to get remaining props for CheckTree, sadly this leaves us with vars that are unused (there is no better way)
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	const { set_data: _set_data, disabled: _disabled, ...checkTreeProps } = props;
+	const { data, set_data, disabled, ..._checkTreeProps } = props;
+	const [checkTreeData, setCheckTreeData] = React.useState<TreeNode[]>(data);
+	const checkTreeProps: CheckTreeProps = _checkTreeProps as CheckTreeProps;
 
 	// Recursively check all children of the given node
 	const recursiveChecking = (node: TreeNode, activeNode: TreeNode) => {
@@ -66,29 +64,31 @@ const EnhancedCheckTree: React.FC<EnhancedCheckTreeProps> = (props) => {
 			return _getAllValuesInTree({ children: checkTreeData });
 		};
 
-		if (props.disabled) {
+		if (disabled) {
 			setDisabledItemValues(getAllValuesInTree());
 		} else {
 			setDisabledItemValues([]);
 		}
-	}, [checkTreeData, props.disabled]);
+	}, [checkTreeData, disabled]);
 
 	useEffect(() => {
-		setCheckTreeData(props.data);
-	}, [props.data]);
+		setCheckTreeData(data);
+	}, [data]);
 
 	return (
 		<CheckTree
+			{...checkTreeProps}
 			disabledItemValues={disabledItemValues}
 			onSelect={(activeNode) => {
 				const checkTreeNode = recursiveFindValue(checkTreeData, activeNode.value as ValueType);
 				if (checkTreeNode) {
 					checkTreeNode.check = activeNode.check;
 					recursiveChecking(checkTreeNode, activeNode);
+					setCheckTreeData([...checkTreeData]);
 				}
-				props.set_data(checkTreeData);
+				set_data(checkTreeData);
 			}}
-			{...checkTreeProps}
+			data={checkTreeData}
 		/>
 	);
 };

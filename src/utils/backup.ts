@@ -27,8 +27,9 @@ export default class Backup {
 	images: File[];
 	status: string; // "empty" | "shallow" | "full"
 	mutex_lock: boolean; // Prevents multiple calls to shallowFetch() and createBackup() at the same time
+	onBackupStatusChange: (status: string) => void; // Callback function to notify about backup status changes
 
-	constructor() {
+	constructor(onBackupStatusChange: (status: string) => void = () => {}) {
 		this.metadata = {
 			timestamp: Date.now(),
 			version: version,
@@ -45,6 +46,12 @@ export default class Backup {
 		this.images = [];
 		this.status = "empty";
 		this.mutex_lock = false;
+		this.onBackupStatusChange = onBackupStatusChange;
+	}
+
+	changeStatus(status: string) {
+		this.status = status;
+		this.onBackupStatusChange(status);
 	}
 
 	async shallowFetch() {
@@ -69,7 +76,7 @@ export default class Backup {
 			return playlist.owner?.id != this.metadata.user.id;
 		});
 
-		this.status = "shallow";
+		this.changeStatus("shallow");
 		this.mutex_lock = false;
 	}
 
@@ -132,7 +139,7 @@ export default class Backup {
 				await fetchPlaylistImages.call(this, playlist);
 			})
 		);
-		this.status = "full";
+		this.changeStatus("full");
 		this.mutex_lock = false;
 	}
 
@@ -217,7 +224,7 @@ export default class Backup {
 				})
 			);
 		}
-		backup.status = "full";
+		backup.changeStatus("full");
 
 		return backup;
 	}
