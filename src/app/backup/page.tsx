@@ -27,6 +27,7 @@ const BackupPage: React.FC = () => {
 	async function createBackup() {
 		if (!backupOptions) return;
 		setCheckTreeDisabled(true);
+		console.log("Creating backup with options:", backupOptions);
 		await backup.current.createBackup(backupOptions);
 		await backup.current.downloadZip();
 		setCheckTreeDisabled(false);

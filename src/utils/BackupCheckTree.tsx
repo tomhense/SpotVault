@@ -22,7 +22,7 @@ const BackupCheckTree: React.FC<BackupCheckTreeProps> = (props) => {
 		};
 
 		// Populate the check tree with the data from the backup (the backups shallow fetch)
-		const tempCheckTreeData: TreeNode[] = [
+		setCheckTreeData([
 			{ label: "Followed Artists", check: false, value: generateRandomId() },
 			{
 				label: "Saved Library",
@@ -51,35 +51,46 @@ const BackupCheckTree: React.FC<BackupCheckTreeProps> = (props) => {
 					value: playlist.id,
 				})),
 			},
-		];
-		setCheckTreeData(tempCheckTreeData);
+		]);
+	}, [backup]);
 
-		// Set the initial state of the check tree based on the backup options
-		const savedLibraryNodeChildren = tempCheckTreeData.find((node) => node.label === "Saved Library")!.children as TreeNode[];
+	useEffect(() => {
+		if (!checkTreeData.length) return;
+		const savedLibraryNodeChildren = checkTreeData.find((node) => node.label === "Saved Library")!.children as TreeNode[];
 		const backupSavedTracks = savedLibraryNodeChildren.find((node: TreeNode) => node.label === "Saved Tracks")?.check || false;
 		const backupSavedAlbums = savedLibraryNodeChildren.find((node: TreeNode) => node.label === "Saved Albums")?.check || false;
-		const backupFollowedArtists = tempCheckTreeData.find((node: TreeNode) => node.label === "Followed Artists")?.check || false;
+		const backupFollowedArtists = checkTreeData.find((node: TreeNode) => node.label === "Followed Artists")?.check || false;
 		const checkedPlaylistsIds =
-			tempCheckTreeData
+			checkTreeData
 				.find((node) => node.label === "Playlists")
 				?.children?.filter((node) => node.check)
 				.map((node) => node.value as string) || [];
 
 		const checkedFollowedPlaylistsIds =
-			tempCheckTreeData
+			checkTreeData
 				.find((node) => node.label === "Followed Playlists")
 				?.children?.filter((node) => node.check)
 				.map((node) => node.value as string) || [];
 
-		const tempBackupOptions: BackupOptions = {
+		console.log("Backup options changed:", {
 			backupSavedTracks,
 			backupSavedAlbums,
 			backupFollowedArtists,
 			checkedPlaylistsIds,
 			checkedFollowedPlaylistsIds,
-		};
-		onChangeBackupOptions(tempBackupOptions);
-	}, [backup, onChangeBackupOptions]);
+		});
+		onChangeBackupOptions({
+			backupSavedTracks,
+			backupSavedAlbums,
+			backupFollowedArtists,
+			checkedPlaylistsIds,
+			checkedFollowedPlaylistsIds,
+		});
+	}, [backup, checkTreeData, onChangeBackupOptions]);
+
+	useEffect(() => {
+		console.log("CheckTree data changed:", checkTreeData);
+	}, [checkTreeData]);
 
 	return <EnhancedCheckTree data={checkTreeData} defaultExpandAll={true} style={{ marginBottom: 2 }} disabled={disabled} set_data={setCheckTreeData} />;
 };
