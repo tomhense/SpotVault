@@ -18,6 +18,10 @@ interface TokenResponse {
 	refresh_token: string;
 	expires_in: number;
 }
+interface TokenResponseError {
+	error: string;
+	error_description: string;
+}
 
 // Data structure that manages the current active token, caching it in window.localStorage
 export const currentToken = {
@@ -137,7 +141,7 @@ async function getToken(code: string): Promise<TokenResponse> {
 	return await response.json();
 }
 
-async function refreshTokenInternal(): Promise<TokenResponse | null> {
+async function refreshTokenInternal(): Promise<TokenResponse | TokenResponseError | null> {
 	const refresh_token = currentToken.refresh_token ?? "";
 	try {
 		const response = await fetch(tokenEndpoint, {
@@ -165,9 +169,12 @@ export async function tryRefreshToken() {
 		// If the token is expired, try to refresh it
 		(async () => {
 			const token = await refreshTokenInternal();
-			if (token) {
+			if (token && !("error" in token)) {
 				console.log("Token refreshed successfully :", token);
 				currentToken.save(token);
+			} else {
+				console.error("Failed to refresh token:", token);
+				logout(); // If we can't refresh the token, log out
 			}
 		})();
 	}
