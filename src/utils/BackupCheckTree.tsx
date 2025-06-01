@@ -12,7 +12,9 @@ interface BackupCheckTreeProps {
 
 const BackupCheckTree: React.FC<BackupCheckTreeProps> = (props) => {
 	const [checkTreeData, setCheckTreeData] = React.useState<TreeNode[]>([]);
-	const [backupOptions, setBackupOptions] = React.useState<BackupOptions | null>(null);
+
+	// Destructure props, needed to mitigate stack overflow in useEffect
+	const { backup, disabled, onChangeBackupOptions } = props;
 
 	useEffect(() => {
 		const generateRandomId = () => {
@@ -20,7 +22,7 @@ const BackupCheckTree: React.FC<BackupCheckTreeProps> = (props) => {
 		};
 
 		// Populate the check tree with the data from the backup (the backups shallow fetch)
-		setCheckTreeData([
+		const tempCheckTreeData: TreeNode[] = [
 			{ label: "Followed Artists", check: false, value: generateRandomId() },
 			{
 				label: "Saved Library",
@@ -35,7 +37,7 @@ const BackupCheckTree: React.FC<BackupCheckTreeProps> = (props) => {
 				label: "Playlists",
 				value: generateRandomId(),
 				check: false,
-				children: props.backup.playlists.map((playlist) => ({
+				children: backup.playlists.map((playlist) => ({
 					label: playlist.name,
 					value: playlist.id,
 				})),
@@ -44,42 +46,42 @@ const BackupCheckTree: React.FC<BackupCheckTreeProps> = (props) => {
 				label: "Followed Playlists",
 				value: generateRandomId(),
 				check: false,
-				children: props.backup.followed_playlists.map((playlist) => ({
+				children: backup.followed_playlists.map((playlist) => ({
 					label: playlist.name,
 					value: playlist.id,
 				})),
 			},
-		]);
-	}, [props.backup]);
+		];
+		setCheckTreeData(tempCheckTreeData);
 
-	useEffect(() => {
-		const savedLibraryNodeChildren = checkTreeData.find((node) => node.label === "Saved Library")!.children as TreeNode[];
+		// Set the initial state of the check tree based on the backup options
+		const savedLibraryNodeChildren = tempCheckTreeData.find((node) => node.label === "Saved Library")!.children as TreeNode[];
 		const backupSavedTracks = savedLibraryNodeChildren.find((node: TreeNode) => node.label === "Saved Tracks")?.check || false;
 		const backupSavedAlbums = savedLibraryNodeChildren.find((node: TreeNode) => node.label === "Saved Albums")?.check || false;
-		const backupFollowedArtists = checkTreeData.find((node: TreeNode) => node.label === "Followed Artists")?.check || false;
+		const backupFollowedArtists = tempCheckTreeData.find((node: TreeNode) => node.label === "Followed Artists")?.check || false;
 		const checkedPlaylistsIds =
-			checkTreeData
+			tempCheckTreeData
 				.find((node) => node.label === "Playlists")
 				?.children?.filter((node) => node.check)
 				.map((node) => node.value as string) || [];
 
 		const checkedFollowedPlaylistsIds =
-			checkTreeData
+			tempCheckTreeData
 				.find((node) => node.label === "Followed Playlists")
 				?.children?.filter((node) => node.check)
 				.map((node) => node.value as string) || [];
 
-		setBackupOptions({
+		const tempBackupOptions: BackupOptions = {
 			backupSavedTracks,
 			backupSavedAlbums,
 			backupFollowedArtists,
 			checkedPlaylistsIds,
 			checkedFollowedPlaylistsIds,
-		});
-		props.onChangeBackupOptions(backupOptions!);
-	}, [backupOptions, checkTreeData, props]);
+		};
+		onChangeBackupOptions(tempBackupOptions);
+	}, [backup, onChangeBackupOptions]);
 
-	return <EnhancedCheckTree data={checkTreeData} defaultExpandAll={true} style={{ marginBottom: 2 }} disabled={props.disabled} set_data={setCheckTreeData} />;
+	return <EnhancedCheckTree data={checkTreeData} defaultExpandAll={true} style={{ marginBottom: 2 }} disabled={disabled} set_data={setCheckTreeData} />;
 };
 
 export default BackupCheckTree;
