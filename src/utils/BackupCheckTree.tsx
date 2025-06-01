@@ -8,13 +8,14 @@ interface BackupCheckTreeProps {
 	backup: Backup;
 	disabled: boolean;
 	onChangeBackupOptions: (options: BackupOptions) => void;
+	backupStatus: string;
 }
 
 const BackupCheckTree: React.FC<BackupCheckTreeProps> = (props) => {
 	const [checkTreeData, setCheckTreeData] = React.useState<TreeNode[]>([]);
 
 	// Destructure props, needed to mitigate stack overflow in useEffect
-	const { backup, disabled, onChangeBackupOptions } = props;
+	const { backup, disabled, onChangeBackupOptions, backupStatus } = props;
 
 	useEffect(() => {
 		const generateRandomId = () => {
@@ -52,7 +53,7 @@ const BackupCheckTree: React.FC<BackupCheckTreeProps> = (props) => {
 				})),
 			},
 		]);
-	}, [backup]);
+	}, [backup, backupStatus]);
 
 	useEffect(() => {
 		if (!checkTreeData.length) return;
