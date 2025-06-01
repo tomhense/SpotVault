@@ -14,6 +14,7 @@ const RestorePage: React.FC = () => {
 	const [fileDropped, setFileDropped] = useState(false);
 	const [dropzoneDisabled, setDropzoneDisabled] = useState(false);
 	const backup: React.RefObject<Backup | null> = useRef(null);
+	const [backupStatus, setBackupStatus] = React.useState<string>("");
 
 	useEffect(() => {
 		(async () => {
@@ -31,6 +32,7 @@ const RestorePage: React.FC = () => {
 			setDropzoneDisabled(true);
 			try {
 				backup.current = await Backup.fromZip(acceptedFiles[0]!);
+				backup.current.onBackupStatusChange = onBackupStatusChanged;
 				setFileDropped(true);
 				setDropzoneDisabled(false);
 			} catch (error) {
@@ -52,13 +54,17 @@ const RestorePage: React.FC = () => {
 		setCheckTreeDisabled(false);
 	}
 
+	function onBackupStatusChanged(status: string) {
+		setBackupStatus(status);
+	}
+
 	return (
 		<Box sx={{ minHeight: "100vh", backgroundColor: "grey.100" }}>
 			<Navbar />
 			<Container maxWidth="sm" sx={{ display: "flex", alignItems: "center", justifyContent: "center", height: "80vh" }}>
 				<Paper elevation={3} sx={{ padding: 4, width: "100%" }}>
 					{fileDropped ? (
-						<BackupCheckTree disabled={checkTreeDisabled} backup={backup.current!} onChangeBackupOptions={setBackupOptions} />
+						<BackupCheckTree disabled={checkTreeDisabled} backup={backup.current!} onChangeBackupOptions={setBackupOptions} backupStatus={backupStatus} />
 					) : (
 						<Dropzone onDrop={onDropHandler} disabled={dropzoneDisabled}>
 							{({ getRootProps, getInputProps }) => (
