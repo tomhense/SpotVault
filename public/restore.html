@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SpotVault · Restore</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <sv-navbar></sv-navbar>
+    <main>
+      <section class="card stack" data-restore-root>
+        <header>
+          <h1>Restore a SpotVault backup</h1>
+          <p>Load a backup zip created by SpotVault. You can inspect the contents and choose what to restore.</p>
+        </header>
+        <div class="status-banner" data-status hidden></div>
+        <div class="dropzone" data-dropzone>
+          <input type="file" accept="application/zip" data-file-input hidden />
+          <div>
+            <p>Drag &amp; drop your <strong>.zip</strong> backup here, or</p>
+            <button type="button" class="secondary" data-action="browse">Browse files</button>
+          </div>
+        </div>
+        <div data-file-info hidden class="stack">
+          <div class="status-banner" data-meta></div>
+          <div class="grid two" data-library-options hidden>
+            <div>
+              <h2 class="section-title">Library items</h2>
+              <ul class="checkbox-list" data-section="library">
+                <li>
+                  <label>
+                    <input type="checkbox" data-option="saved-tracks" />
+                    Saved Tracks
+                  </label>
+                </li>
+                <li>
+                  <label>
+                    <input type="checkbox" data-option="saved-albums" />
+                    Saved Albums
+                  </label>
+                </li>
+                <li>
+                  <label>
+                    <input type="checkbox" data-option="followed-artists" />
+                    Followed Artists
+                  </label>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h2 class="section-title">Playlists</h2>
+              <p>Select the playlists you want to restore.</p>
+            </div>
+          </div>
+          <div class="stack" data-playlist-sections hidden>
+            <div>
+              <h3 class="section-title">Owned playlists</h3>
+              <ul class="checkbox-list" data-list="own"></ul>
+            </div>
+            <div>
+              <h3 class="section-title">Followed playlists</h3>
+              <ul class="checkbox-list" data-list="followed"></ul>
+            </div>
+          </div>
+        </div>
+        <div class="inline-actions">
+          <button type="button" class="secondary" data-action="back-home">Back</button>
+          <button type="button" data-action="restore" disabled>Restore backup</button>
+        </div>
+      </section>
+    </main>
+    <script type="module" src="/js/pages/restore.js"></script>
+  </body>
+</html>

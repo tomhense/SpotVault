@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SpotVault · Backup</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <sv-navbar></sv-navbar>
+    <main>
+      <section class="card stack" data-backup-root>
+        <header>
+          <h1>Create a Spotify backup</h1>
+          <p>
+            Pick what to export from your Spotify account. Once you confirm, SpotVault will fetch the data directly from Spotify and bundle everything in a zip.
+          </p>
+        </header>
+        <div class="status-banner" data-status hidden></div>
+        <div class="grid two" data-library-options hidden>
+          <div>
+            <h2 class="section-title">Library</h2>
+            <ul class="checkbox-list" data-section="library">
+              <li>
+                <label>
+                  <input type="checkbox" data-option="saved-tracks" />
+                  Saved Tracks
+                </label>
+              </li>
+              <li>
+                <label>
+                  <input type="checkbox" data-option="saved-albums" />
+                  Saved Albums
+                </label>
+              </li>
+              <li>
+                <label>
+                  <input type="checkbox" data-option="followed-artists" />
+                  Followed Artists
+                </label>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h2 class="section-title">Status</h2>
+            <div class="status-banner" data-progress hidden></div>
+          </div>
+        </div>
+        <div class="stack" data-playlist-sections hidden>
+          <div>
+            <h2 class="section-title">Playlists you own</h2>
+            <p>Select the playlists you want to include in the backup. Only the selected playlists will fetch their tracks.</p>
+            <ul class="checkbox-list" data-list="own"></ul>
+          </div>
+          <div>
+            <h2 class="section-title">Playlists you follow</h2>
+            <p>These playlists belong to other users. Select the ones to include.</p>
+            <ul class="checkbox-list" data-list="followed"></ul>
+          </div>
+        </div>
+        <div class="inline-actions">
+          <button type="button" class="secondary" data-action="back-home">Back</button>
+          <button type="button" data-action="backup" disabled>Create backup</button>
+        </div>
+      </section>
+    </main>
+    <script type="module" src="/js/pages/backup.js"></script>
+  </body>
+</html>
