@@ -10,6 +10,7 @@ const ownList = document.querySelector('[data-list="own"]');
 const followedList = document.querySelector('[data-list="followed"]');
 const backupButton = document.querySelector('[data-action="backup"]');
 const backButton = document.querySelector('[data-action="back-home"]');
+const selectAllPlaylistsButton = document.querySelector('[data-action="select-all-playlists"]');
 
 const backupOptions = {
   backupSavedTracks: false,
@@ -50,6 +51,9 @@ async function initialise() {
   renderPlaylists();
   setStatus('Select what you want to include in this backup.');
   backupButton.disabled = false;
+  if (selectAllPlaylistsButton) {
+    selectAllPlaylistsButton.disabled = false;
+  }
 }
 
 function renderLibraryOptions() {
@@ -124,6 +128,33 @@ function updateSelection(targetArray, playlistId, checked) {
   }
 }
 
+function setAllPlaylistSelection(checked) {
+  if (!backupInstance) return;
+  setListSelection(ownList, backupInstance.playlists, backupOptions.checkedPlaylistsIds, checked);
+  setListSelection(followedList, backupInstance.followed_playlists, backupOptions.checkedFollowedPlaylistsIds, checked);
+}
+
+function setListSelection(listEl, playlists, targetArray, checked) {
+  if (!listEl) return;
+  targetArray.length = 0;
+  if (checked && Array.isArray(playlists)) {
+    playlists.forEach((playlist) => {
+      if (playlist?.id) {
+        targetArray.push(playlist.id);
+      }
+    });
+  }
+
+  listEl.querySelectorAll('input[type="checkbox"]').forEach((input) => {
+    const id = input.dataset.id;
+    if (!checked) {
+      input.checked = false;
+      return;
+    }
+    input.checked = !id || targetArray.includes(id);
+  });
+}
+
 function setStatus(message, isError = false) {
   statusEl.hidden = !message;
   statusEl.textContent = message;
@@ -159,6 +190,14 @@ if (backupButton) {
 if (backButton) {
   backButton.addEventListener('click', () => {
     window.location.href = '/';
+  });
+}
+
+if (selectAllPlaylistsButton) {
+  selectAllPlaylistsButton.disabled = true;
+  selectAllPlaylistsButton.addEventListener('click', () => {
+    if (!backupInstance) return;
+    setAllPlaylistSelection(true);
   });
 }
 

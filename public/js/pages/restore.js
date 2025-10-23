@@ -14,6 +14,7 @@ const ownList = document.querySelector('[data-list="own"]');
 const followedList = document.querySelector('[data-list="followed"]');
 const restoreButton = document.querySelector('[data-action="restore"]');
 const backButton = document.querySelector('[data-action="back-home"]');
+const selectAllPlaylistsButton = document.querySelector('[data-action="select-all-playlists"]');
 
 const restoreOptions = {
   backupSavedTracks: false,
@@ -81,18 +82,27 @@ function attachDropzoneHandlers() {
 async function handleFile(file) {
   setStatus(`Loading ${file.name}…`);
   restoreButton.disabled = true;
+  if (selectAllPlaylistsButton) {
+    selectAllPlaylistsButton.disabled = true;
+  }
   try {
     backupInstance = await Backup.fromZip(file);
     backupInstance.onBackupStatusChange = (status) => setStatus(`Backup status: ${status}`);
     renderBackupContents();
     setStatus('Backup loaded. Choose what you would like to restore.');
     restoreButton.disabled = false;
+    if (selectAllPlaylistsButton) {
+      selectAllPlaylistsButton.disabled = false;
+    }
   } catch (error) {
     console.error('Failed to load backup', error);
     setStatus('Could not read the backup. Make sure it was created with SpotVault.', true);
     restoreButton.disabled = true;
     if (fileInfo) {
       fileInfo.hidden = true;
+    }
+    if (selectAllPlaylistsButton) {
+      selectAllPlaylistsButton.disabled = true;
     }
   }
 }
@@ -220,6 +230,33 @@ function updateSelection(targetArray, playlistId, checked) {
   }
 }
 
+function setAllPlaylistSelection(checked) {
+  if (!backupInstance) return;
+  setListSelection(ownList, backupInstance.playlists, restoreOptions.checkedPlaylistsIds, checked);
+  setListSelection(followedList, backupInstance.followed_playlists, restoreOptions.checkedFollowedPlaylistsIds, checked);
+}
+
+function setListSelection(listEl, playlists, targetArray, checked) {
+  if (!listEl) return;
+  targetArray.length = 0;
+  if (checked && Array.isArray(playlists)) {
+    playlists.forEach((playlist) => {
+      if (playlist?.id) {
+        targetArray.push(playlist.id);
+      }
+    });
+  }
+
+  listEl.querySelectorAll('input[type="checkbox"]').forEach((input) => {
+    const id = input.dataset.id;
+    if (!checked) {
+      input.checked = false;
+      return;
+    }
+    input.checked = !id || targetArray.includes(id);
+  });
+}
+
 if (restoreButton) {
   restoreButton.addEventListener('click', async () => {
     if (!backupInstance) {
@@ -243,6 +280,13 @@ if (restoreButton) {
 if (backButton) {
   backButton.addEventListener('click', () => {
     window.location.href = '/';
+  });
+}
+
+if (selectAllPlaylistsButton) {
+  selectAllPlaylistsButton.addEventListener('click', () => {
+    if (!backupInstance) return;
+    setAllPlaylistSelection(true);
   });
 }
 
