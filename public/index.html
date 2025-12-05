@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SpotVault</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <sv-navbar></sv-navbar>
+    <main>
+      <section class="hero card" id="home-card">
+        <div class="badge">Backup your Spotify world</div>
+        <h1>Keep your playlists safe and portable.</h1>
+        <p>
+          SpotVault helps you export the playlists, saved tracks, albums, and followed artists tied to your Spotify account.
+          Authorise once, pick what you want, and download a complete backup.
+        </p>
+        <div class="inline-actions" data-home-actions>
+          <button type="button" data-action="login">Login with Spotify</button>
+          <a class="link-button" href="/backup.html" data-link="backup" hidden>Go to Backup</a>
+          <a class="link-button" href="/restore.html" data-link="restore" hidden>Go to Restore</a>
+        </div>
+        <div class="status-banner" data-status hidden></div>
+      </section>
+    </main>
+    <script type="module" src="/js/pages/home.js"></script>
+  </body>
+</html>
