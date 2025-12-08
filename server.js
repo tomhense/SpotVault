@@ -6,7 +6,7 @@ import { dirname, extname, join, resolve } from 'node:path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const publicDir = resolve(__dirname, 'public');
+const publicDir = resolve(__dirname, 'build');
 
 const mimeTypes = {
   '.html': 'text/html; charset=utf-8',
